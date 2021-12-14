@@ -1,5 +1,6 @@
 chosenFreq = 1;
 zoom = 1;
+ischanging = true;
 class sineWave {
   freq = 0;
   finalfreq = 0;
@@ -9,7 +10,7 @@ class sineWave {
     this.freq = freq;
     this.amplitude = amplitude;
     this.finalfreq = freq;
-    for (let i = 0; i < 40; i += 0.01) {
+    for (let i = 0; i < 10; i += 0.01) {
       this.points.push(Math.sin((i * freq) / 50) * amplitude);
     }
   }
@@ -40,7 +41,7 @@ function fourier(inputWave) {
   fouriers = [];
   for (sample = 1; sample < inputWave.points.length; sample++) {
     sumForSample = 0;
-    for (i = 0; i < inputWave.points.length; i += sample) {
+    for (i = 0; i < inputWave.points.length / 4; i += sample) {
       sumForSample += inputWave.points[i];
     }
     fouriers.push(sumForSample);
@@ -77,31 +78,60 @@ makeNewElem = new button(300, 500, () => {
 kek = 0;
 function update() {}
 function draw() {
-  kek++;
-  waveone = new sineWave((kek * kek) / 1000, 10);
+  if (ischanging) {
+    kek += 4;
+  }
+  // waveone = new sineWave((kek * kek) / 1000, 10);
+  waveone = new sineWave(kek * 1.3, 10);
+  //waveone.addWave(new sineWave(kek/2, 10));
 
   context.font = "20px Ariel";
+  context.fillText(kek, 100, 100);
+  context.fillText(
+    Math.round(Math.pow(10, (mouseX - 1) / 200) * 2.6),
+    200,
+    100
+  );
   context.fillText(chosenFreq, 400, 20);
   higherFreq.drawSelf();
   lowerFreq.drawSelf();
   makeNewElem.drawSelf();
   waveone.drawSelf();
+  kys = 0;
   kys = fourier(waveone);
-  for (let i = 0; i < kys.length; i += 1) {
+  for (let i = kys.length; i > 0; i -= 1) {
     // console.log(i);
     drawLine(
-      Math.log10(i) * 200,
-      200 - kys[i],
-      Math.log10(i - 1) * 200,
-      200 - kys[i - 1]
+      800 - Math.log10(i) * 200,
+      300 - (kys[i] * kys[i]) / 60,
+      800 - Math.log10(i - 1) * 200,
+      300 - (kys[i - 1] * kys[i - 1]) / 60
     );
   }
+  maxforframe = 0;
+  maxforframeindex = 0;
+  for (let i = 0; i < kys.length; i++) {
+    if (kys[i] > maxforframe) {
+      maxforframe = kys[i];
+      maxforframeindex = i;
+    }
+  }
+  context.fillText(
+    Math.round(
+      Math.pow(10, (800 - Math.log10(maxforframeindex) * 200) / 200) * 2.6
+    ),
+    800 - Math.log10(maxforframeindex) * 200,
+    300 - (maxforframe * maxforframe) / 60
+  );
 }
 function mouseup() {
   //Math.log10(i)*200=350
   //i=Math.pow(10,mouseX)/200
-  console.log(Math.round(Math.pow(10, mouseX / 200)));
+  console.log();
   higherFreq.checkCollision();
   lowerFreq.checkCollision();
   makeNewElem.checkCollision();
+}
+function keyup() {
+  ischanging = !ischanging;
 }
